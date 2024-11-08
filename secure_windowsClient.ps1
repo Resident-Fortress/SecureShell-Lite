@@ -24,12 +24,18 @@ Checkpoint-Computer -Description "Clean-Installation"
 # Task 2 Disable any accounts not needed
 Disable-LocalUser -Name "Guest"
 
-# Task 3 Set services to either stop or start
+# Task 3 Update Applications
+# Uncomment any potential applications needed for upgrade
+# winget upgrade -e --id GIMP.GIMP
+# winget upgrade -e --id Tiled.Tiled
+# winget upgrade -e --id Google.Chrome
+# winget upgrade -e --id Inkscape.Inkscape
+
+# Task 4 Set services to either stop or start
 Set-Service -Name "wuauserv" -StartupType "Automatic" #  Windows Update service automatically begins on start-up 
 Start-Service -Name "wuauserv" # Windows Update Service start 
 
-# Task 4 Registry edits
-
+# Task 5 Registry edits
 # Disables the Windows Optional Feature SMBv1 protocol
 powershell.exe Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol -norestart 
 # Disable SMBv1 protocol
@@ -101,7 +107,7 @@ reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "DnsOverHttpsMode" /t REG_SZ /
 # Set minimum SSL version to TLS 1.0 in Google Chrome
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "SSLVersionMin" /t REG_SZ /d tls1 /f
 
-# Task 5 Auditiing of system events that are critical
+# Task 6 Auditiing of system events that are critical
 
 # Enable auditing for Security Group Management with both success and failure events
 Auditpol /set /subcategory:"Security Group Management" /success:enable /failure:enable
@@ -145,20 +151,20 @@ auditpol /set /category:"System","Account Management","Account Logon","Logon/Log
 # Enable auditing for DS Access and Object Access categories with failure events only
 auditpol /set /category:"DS Access","Object Access" /failure:enable
 
-# Task 6 Set firewall profiles to true
+# Task 7 Set firewall profiles to true
 Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled True
 
-# Task 7 Disable Remote Assistance
+# Task 8 Disable Remote Assistance
 Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" -Name "fAllowToGetHelp"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" -Name "fAllowToGetHelp" -Value 0
 Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" -Name "fAllowToGetHelp"
 
-# Task 8 Disable LanmanServer
+# Task 9 Disable LanmanServer
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "AutoShareWks" -Value 0
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "AutoShareServer" -Value 0
 Restart-Service -Name 'LanmanServer'
 
-# Task 9 Set firewall rules 
+# Task 10 Set firewall rules 
 netsh Advfirewall set allprofiles state on
 netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="C:\Program Files (x86)\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="C:\Program Files\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
@@ -214,11 +220,11 @@ netsh advfirewall firewall add rule name="Block wmic.exe netconns" program="%sys
 netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%systemroot%\system32\wscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%systemroot%\SysWOW64\wscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
 
-# Task 10 Install the MS Powershell updater for easier and quicker method of updating windows
+# Task 11 Install the MS Powershell updater for easier and quicker method of updating windows
 Install-Module PSWindowsUpdate
 Add-WUServiceManager -MicrosoftUpdate
 Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -AutoReboot | Out-File "C:\($env.computername-Get-Date -f yyyy-MM-dd)-MSUpdates.log" -Force
 
-# Task 11 The machine creates a restore point after the machine is ready and locks PowerShell execution
+# Task 12 The machine creates a restore point after the machine is ready and locks PowerShell execution
 Checkpoint-Computer -Description "Post Script"
 Set-ExecutionPolicy -ExecutionPolicy Restricted -Scope LocalMachine
